@@ -12,6 +12,9 @@
             </e>
             <e p="lib" t="Include">
               <e p="Analyzing.cs" t="Include" />
+              <e p="attribute" t="Include">
+                <e p="AnalyzeAttribute.cs" t="Include" />
+              </e>
               <e p="Flags.cs" t="Include" />
               <e p="handler" t="Include">
                 <e p="FuncDataHandler.cs" t="Include" />
@@ -21,6 +24,9 @@
                 <e p="IHandler.cs" t="Include" />
               </e>
             </e>
+          </e>
+          <e p="sample" t="Include">
+            <e p="FuncAnalyzerSample.cs" t="Include" />
           </e>
         </e>
       </e>
