@@ -1,4 +1,5 @@
-﻿using co.lujun.funcanalyzer.attribute;
+﻿using System;
+using co.lujun.funcanalyzer.attribute;
 using UnityEngine;
 
 namespace co.lujun.funcanalyzer.sample
@@ -45,6 +46,17 @@ namespace co.lujun.funcanalyzer.sample
         private void NoAnalyzeSampleFunction()
         {
             int i = 8;
+        }
+
+        private void Start()
+        {
+            AnalyzeDefaultSampleFunction();
+            AnalyzeArgsSampleFunction();
+            AnalyzeRetSampleFunction();
+            AnalyzeTimeSampleFunction();
+            AnalyzeMemorySampleFunction();
+            AnalyzeArgsAndTimeSampleFunction();
+            NoAnalyzeSampleFunction();
         }
     }
 
