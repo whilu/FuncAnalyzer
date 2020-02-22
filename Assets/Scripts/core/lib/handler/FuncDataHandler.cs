@@ -10,14 +10,25 @@ namespace co.lujun.funcanalyzer.module
             // including function 'args' analyze
             if((flags & Flags.Args) != 0)
             {
-
+                GenerateAnalysisCodeForArgs(moduleDefinition, methodDefinition);
             }
 
             // including function 'return value' analyze
             if ((flags & Flags.Ret) != 0)
             {
-
+                GenerateAnalysisCodeForRet(moduleDefinition, methodDefinition);
             }
+        }
+
+        private void GenerateAnalysisCodeForArgs(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        {
+
+        }
+
+
+        private void GenerateAnalysisCodeForRet(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        {
+
         }
     }
 }

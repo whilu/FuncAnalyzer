@@ -60,6 +60,7 @@ namespace co.lujun.funcanalyzer
         private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
         {
             string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
+            bool needAnalyze = false;
             Flags flags = Flags.Default;
 
             for (int i = 0; i < methodDefinition.CustomAttributes.Count; i++)
@@ -68,12 +69,19 @@ namespace co.lujun.funcanalyzer
 
                 if (attribute.Constructor.DeclaringType.FullName.Equals(analyzeAttrName))
                 {
+                    needAnalyze = true;
                     AnalyzeAttr<Flags>(attribute, "AnalyzingFlags", ref flags);
                     break;
                 }
             }
 
-            InjectILCode(moduleDefinition, methodDefinition, flags);
+//            Debug.LogFormat("AnalyzeFunc - method name: {0}, need analyze: {1}, flags: {2}",
+//                methodDefinition.FullName, needAnalyze, flags);
+
+            if (needAnalyze)
+            {
+                InjectILCode(moduleDefinition, methodDefinition, flags);
+            }
         }
 
         private void AnalyzeAttr<T>(CustomAttribute attribute, string argName, ref T t)
@@ -101,14 +109,22 @@ namespace co.lujun.funcanalyzer
                 funcDataHandler = new FuncDataHandler();
                 runTimeDataHandler = new RuntimeDataHandler();
             }
-            else if((flags & Flags.Args) != 0 || (flags & Flags.Ret) != 0)
-            {
-                funcDataHandler = new FuncDataHandler();
-            }
             else
             {
-                runTimeDataHandler = new RuntimeDataHandler();
+                if((flags & Flags.Args) != 0 || (flags & Flags.Ret) != 0)
+                {
+                    funcDataHandler = new FuncDataHandler();
+                }
+
+                if((flags & Flags.Time) != 0 || (flags & Flags.Memory) != 0)
+                {
+                    runTimeDataHandler = new RuntimeDataHandler();
+                }
             }
+
+//            Debug.LogFormat("InjectILCode - method name: {0}, flags: {1}, " +
+//                "funcDataHandler not null: {2}, runTimeDataHandler not null: {3}",
+//                methodDefinition.FullName, flags, funcDataHandler != null, runTimeDataHandler != null);
 
             // inject handler
             funcDataHandler?.Inject(moduleDefinition, methodDefinition, flags);

@@ -41,6 +41,11 @@ namespace co.lujun.funcanalyzer.sample
         {
             int i = 8;
         }
+
+        private void NoAnalyzeSampleFunction()
+        {
+            int i = 8;
+        }
     }
 
 }
