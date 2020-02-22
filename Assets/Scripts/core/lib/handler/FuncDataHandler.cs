@@ -1,10 +1,11 @@
 using co.lujun.funcanalyzer.imodule;
+using Mono.Cecil;
 
 namespace co.lujun.funcanalyzer.module
 {
     public class FuncDataHandler : IHandler
     {
-        public void Inject(Flags flags)
+        public void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
         {
             // including function 'args' analyze
             if((flags & Flags.Args) != 0)

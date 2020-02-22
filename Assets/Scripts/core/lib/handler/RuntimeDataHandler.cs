@@ -1,10 +1,11 @@
 using co.lujun.funcanalyzer.imodule;
+using Mono.Cecil;
 
 namespace co.lujun.funcanalyzer.module
 {
     public class RuntimeDataHandler : IHandler
     {
-        public void Inject(Flags flags)
+        public void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
         {
             // including function 'execute time' analyze
             if ((flags & Flags.Time) != 0)
