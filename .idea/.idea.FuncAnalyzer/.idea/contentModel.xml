@@ -18,6 +18,7 @@
               <e p="Flags.cs" t="Include" />
               <e p="handler" t="Include">
                 <e p="FuncDataHandler.cs" t="Include" />
+                <e p="HandlerImpl.cs" t="Include" />
                 <e p="RuntimeDataHandler.cs" t="Include" />
               </e>
               <e p="ihandler" t="Include">

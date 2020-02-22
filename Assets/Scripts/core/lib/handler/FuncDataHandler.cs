@@ -1,32 +1,33 @@
-using co.lujun.funcanalyzer.imodule;
 using Mono.Cecil;
 
-namespace co.lujun.funcanalyzer.module
+namespace co.lujun.funcanalyzer.handler
 {
-    public class FuncDataHandler : IHandler
+    public class FuncDataHandler : HandlerImpl
     {
-        public void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
         {
+            base.Inject(moduleDefinition, methodDefinition, flags);
+
             // including function 'args' analyze
             if((flags & Flags.Args) != 0)
             {
-                GenerateAnalysisCodeForArgs(moduleDefinition, methodDefinition);
+                GenerateAnalysisCodeForArgs();
             }
 
             // including function 'return value' analyze
             if ((flags & Flags.Ret) != 0)
             {
-                GenerateAnalysisCodeForRet(moduleDefinition, methodDefinition);
+                GenerateAnalysisCodeForRet();
             }
         }
 
-        private void GenerateAnalysisCodeForArgs(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        private void GenerateAnalysisCodeForArgs()
         {
 
         }
 
 
-        private void GenerateAnalysisCodeForRet(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        private void GenerateAnalysisCodeForRet()
         {
 
         }
