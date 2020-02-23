@@ -29,19 +29,15 @@ namespace co.lujun.funcanalyzer.handler
 
         private void GenerateAnalysisCodeForTime()
         {
-            // OriginVariablesCount
             TypeReference startTimeTypeReference = ModuleDefinition.ImportReference(typeof(DateTime));
             MethodDefinition.Body.Variables.Add(new VariableDefinition(startTimeTypeReference));
 
-            // OriginVariablesCount + 1
             TypeReference costTimeMillsTypeReference = ModuleDefinition.ImportReference(typeof(double));
             MethodDefinition.Body.Variables.Add(new VariableDefinition(costTimeMillsTypeReference));
 
-            // OriginVariablesCount + 2
             TypeReference timeSpanTypeReference = ModuleDefinition.ImportReference(typeof(TimeSpan));
             MethodDefinition.Body.Variables.Add(new VariableDefinition(timeSpanTypeReference));
 
-            // OriginVariablesCount + 3
             TypeReference logCostTimeStrTypeReference = ModuleDefinition.ImportReference(typeof(string));
             MethodDefinition.Body.Variables.Add(new VariableDefinition(logCostTimeStrTypeReference));
 
@@ -54,7 +50,7 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodFirstInstruction, nowDateInstruction);
 
             // Store the start date time
-            Instruction stLocNowDateInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount);
+            Instruction stLocNowDateInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 4);
             ILProcessor.InsertAfter(nowDateInstruction, stLocNowDateInstruction);
 
             // Get date time after method executed
@@ -62,7 +58,7 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodLastInstruction, endDateInstruction);
 
             // Copy the start date time
-            Instruction ldLocStartDateInstruction = ILProcessor.Create(OpCodes.Ldloc, OriginVariablesCount);
+            Instruction ldLocStartDateInstruction = ILProcessor.Create(OpCodes.Ldloc, OriginVariablesCount - 4);
             ILProcessor.InsertBefore(MethodLastInstruction, ldLocStartDateInstruction);
 
             // Get the cost TimeSpan with the start date time and after date time
@@ -72,11 +68,11 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodLastInstruction, subtractCostTimeInstruction);
 
             // Store the time span
-            Instruction stLocTimeSpanInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount + 2);
+            Instruction stLocTimeSpanInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 2);
             ILProcessor.InsertBefore(MethodLastInstruction, stLocTimeSpanInstruction);
 
             // Get the time span reference
-            Instruction ldLocaTimeSpanInstruction = ILProcessor.Create(OpCodes.Ldloca, OriginVariablesCount + 2);
+            Instruction ldLocaTimeSpanInstruction = ILProcessor.Create(OpCodes.Ldloca, OriginVariablesCount - 2);
             ILProcessor.InsertBefore(MethodLastInstruction, ldLocaTimeSpanInstruction);
 
             // Get the cost time milliseconds with time span
@@ -86,11 +82,11 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodLastInstruction, totalMillisecondsInstruction);
 
             // Store cost time milliseconds
-            Instruction stLocCostTimeInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount + 1);
+            Instruction stLocCostTimeInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 3);
             ILProcessor.InsertBefore(MethodLastInstruction, stLocCostTimeInstruction);
 
             // Get the cost time milliseconds's reference
-            Instruction ldLocCostTimeInstruction = ILProcessor.Create(OpCodes.Ldloca, OriginVariablesCount + 1);
+            Instruction ldLocCostTimeInstruction = ILProcessor.Create(OpCodes.Ldloca, OriginVariablesCount - 3);
             ILProcessor.InsertBefore(MethodLastInstruction, ldLocCostTimeInstruction);
 
             // Convert cost time to string
@@ -100,7 +96,7 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodLastInstruction, timeToStringInstruction);
 
             // Store cost time milliseconds string
-            Instruction stLocCostTimeStrInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount + 3);
+            Instruction stLocCostTimeStrInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 1);
             ILProcessor.InsertBefore(MethodLastInstruction, stLocCostTimeStrInstruction);
 
             // Push the LogFormat method's string param to Evaluation Stack
@@ -129,7 +125,7 @@ namespace co.lujun.funcanalyzer.handler
             // Copy the cost time milliseconds to the array with specify position
             Instruction ldcIndex0LogFormatParamsInstruction = ILProcessor.Create(OpCodes.Ldc_I4, 0);
             ILProcessor.InsertBefore(MethodLastInstruction, ldcIndex0LogFormatParamsInstruction);
-            Instruction ldLocIndex0ParamInstruction = ILProcessor.Create(OpCodes.Ldloc, OriginVariablesCount + 3);
+            Instruction ldLocIndex0ParamInstruction = ILProcessor.Create(OpCodes.Ldloc, OriginVariablesCount - 1);
             ILProcessor.InsertBefore(MethodLastInstruction, ldLocIndex0ParamInstruction);
             Instruction stelemIndex0ParamRefInstruction = ILProcessor.Create(OpCodes.Stelem_Ref);
             ILProcessor.InsertBefore(MethodLastInstruction, stelemIndex0ParamRefInstruction);
@@ -184,7 +180,7 @@ namespace co.lujun.funcanalyzer.handler
 
                 // Store the formatted memory size
                 Instruction stLocDataStrInstruction = ILProcessor.Create(OpCodes.Stloc,
-                    OriginVariablesCount + localIdxOffset);
+                    OriginVariablesCount - logParamsCount + localIdxOffset);
                 ILProcessor.InsertBefore(MethodFirstInstruction, stLocDataStrInstruction);
             }
 
@@ -215,7 +211,7 @@ namespace co.lujun.funcanalyzer.handler
                 Instruction ldcIndexLogFormatParamsInstruction = ILProcessor.Create(OpCodes.Ldc_I4, i);
                 ILProcessor.InsertBefore(MethodFirstInstruction, ldcIndexLogFormatParamsInstruction);
                 Instruction ldLocIndexParamInstruction = ILProcessor.Create(OpCodes.Ldloc,
-                    OriginVariablesCount + i);
+                    OriginVariablesCount - i - 1);
                 ILProcessor.InsertBefore(MethodFirstInstruction, ldLocIndexParamInstruction);
                 Instruction stelemParamRefInstruction = ILProcessor.Create(OpCodes.Stelem_Ref);
                 ILProcessor.InsertBefore(MethodFirstInstruction, stelemParamRefInstruction);
