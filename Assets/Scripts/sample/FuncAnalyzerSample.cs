@@ -1,17 +1,16 @@
 ﻿using co.lujun.funcanalyzer.attribute;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace co.lujun.funcanalyzer.sample
 {
     public class FuncAnalyzerSample : MonoBehaviour
     {
-//        [Analyze]
-//        private void AnalyzeDefaultSampleFunction()
-//        {
-//            int i = 8;
-//        }
-//
+        [Analyze]
+        private void AnalyzeDefaultSampleFunction()
+        {
+            int i = 8;
+        }
+
 //        [Analyze(AnalyzingFlags = Flags.Args)]
 //        private void AnalyzeArgsSampleFunction()
 //        {
@@ -49,7 +48,7 @@ namespace co.lujun.funcanalyzer.sample
 
         private void Start()
         {
-//            AnalyzeDefaultSampleFunction();
+            AnalyzeDefaultSampleFunction();
 //            AnalyzeArgsSampleFunction();
 //            AnalyzeRetSampleFunction();
             AnalyzeTimeSampleFunction();

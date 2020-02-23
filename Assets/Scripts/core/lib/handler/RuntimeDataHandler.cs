@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using co.lujun.funcanalyzer.util;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -103,7 +104,11 @@ namespace co.lujun.funcanalyzer.handler
             ILProcessor.InsertBefore(MethodLastInstruction, stLocCostTimeStrInstruction);
 
             // Push the LogFormat method's string param to Evaluation Stack
-            string logFormatStr = MethodDefinition.Name + " execute cost {0} ms";
+            string logFormatStr = new StringBuilder()
+                .Append(MethodDefinition.Name)
+                .Append(" - ")
+                .Append("Execute cost {0} ms")
+                .ToString();
             Instruction ldStrLogFormatStrInstruction = ILProcessor.Create(OpCodes.Ldstr, logFormatStr);
             ILProcessor.InsertBefore(MethodLastInstruction, ldStrLogFormatStrInstruction);
 
@@ -134,6 +139,9 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
+
+            // Add locals count
+            OriginVariablesCount += 4;
         }
 
         private void GenerateAnalysisCodeForMemory()
@@ -183,8 +191,13 @@ namespace co.lujun.funcanalyzer.handler
                 ILProcessor.InsertBefore(MethodFirstInstruction, stLocDataStrInstruction);
             }
 
-            string logFormatStr = "Mono heap size: {0}; Mono used size: {1}; Total reserved memory: {2}; " +
-                                  "Total allocated memory: {3}; Total unused reserved memory: {4}";
+            string logFormatStr = new StringBuilder()
+                .Append(MethodDefinition.Name)
+                .Append(" - ")
+                .Append("Mono heap size: {0}; Mono used size: {1}; Total reserved memory: {2}; " +
+                        "Total allocated memory: {3}; Total unused reserved memory: {4}")
+                .ToString();
+
             Instruction ldStrLogFormatStrInstruction = ILProcessor.Create(OpCodes.Ldstr, logFormatStr);
             ILProcessor.InsertBefore(MethodFirstInstruction, ldStrLogFormatStrInstruction);
 
@@ -216,6 +229,9 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodFirstInstruction, logMethodInstruction);
+
+            // Add locals count
+            OriginVariablesCount += logParamsCount;
         }
     }
 }
