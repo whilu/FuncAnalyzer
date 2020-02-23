@@ -139,9 +139,6 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
-
-            // Add locals count
-            OriginVariablesCount += 4;
         }
 
         private void GenerateAnalysisCodeForMemory()
@@ -229,9 +226,6 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodFirstInstruction, logMethodInstruction);
-
-            // Add locals count
-            OriginVariablesCount += logParamsCount;
         }
     }
 }

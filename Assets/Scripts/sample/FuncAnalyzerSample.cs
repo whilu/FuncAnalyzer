@@ -11,17 +11,17 @@ namespace co.lujun.funcanalyzer.sample
             int i = 8;
         }
 
-//        [Analyze(AnalyzingFlags = Flags.Args)]
-//        private void AnalyzeArgsSampleFunction()
-//        {
-//            int i = 8;
-//        }
-//
-//        [Analyze(AnalyzingFlags = Flags.Ret)]
-//        private void AnalyzeRetSampleFunction()
-//        {
-//            int i = 8;
-//        }
+        [Analyze(AnalyzingFlags = Flags.Args)]
+        private void AnalyzeArgsSampleFunction()
+        {
+            int i = 8;
+        }
+
+        [Analyze(AnalyzingFlags = Flags.Ret)]
+        private void AnalyzeRetSampleFunction()
+        {
+            int i = 8;
+        }
 
         [Analyze(AnalyzingFlags = Flags.Time)]
         private void AnalyzeTimeSampleFunction()
@@ -41,20 +41,20 @@ namespace co.lujun.funcanalyzer.sample
 //            int i = 8;
 //        }
 
-//        private void NoAnalyzeSampleFunction()
-//        {
-//            int i = 8;
-//        }
+        private void NoAnalyzeSampleFunction()
+        {
+            int i = 8;
+        }
 
         private void Start()
         {
             AnalyzeDefaultSampleFunction();
-//            AnalyzeArgsSampleFunction();
-//            AnalyzeRetSampleFunction();
+            AnalyzeArgsSampleFunction();
+            AnalyzeRetSampleFunction();
             AnalyzeTimeSampleFunction();
             AnalyzeMemorySampleFunction();
 //            AnalyzeArgsAndTimeSampleFunction();
-//            NoAnalyzeSampleFunction();
+            NoAnalyzeSampleFunction();
         }
     }
 

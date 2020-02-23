@@ -16,7 +16,10 @@ namespace co.lujun.funcanalyzer.handler
 
         public Instruction MethodLastInstruction { get; set; }
 
-        public int OriginVariablesCount { get; set; }
+        public int OriginVariablesCount
+        {
+            get { return MethodDefinition.Body.Variables.Count; }
+        }
 
         public Flags Flags { get; set; }
 
@@ -25,7 +28,6 @@ namespace co.lujun.funcanalyzer.handler
             ModuleDefinition = moduleDefinition;
             MethodDefinition = methodDefinition;
             ILProcessor = methodDefinition.Body.GetILProcessor();
-            OriginVariablesCount = methodDefinition.Body.Variables.Count;
             MethodFirstInstruction = methodDefinition.Body.Instructions[0];
             MethodLastInstruction = methodDefinition.Body.Instructions[methodDefinition.Body.Instructions.Count - 1];
             Flags = flags;
