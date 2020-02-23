@@ -1,7 +1,9 @@
 using System;
+using co.lujun.funcanalyzer.util;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace co.lujun.funcanalyzer.handler
 {
@@ -136,7 +138,84 @@ namespace co.lujun.funcanalyzer.handler
 
         private void GenerateAnalysisCodeForMemory()
         {
+            int logParamsCount = 5;
 
+            // Define 5 variables for data
+            for (int i = 0; i < logParamsCount; i++)
+            {
+                TypeReference memoryRetTypeReference = ModuleDefinition.ImportReference(typeof(string));
+                MethodDefinition.Body.Variables.Add(new VariableDefinition(memoryRetTypeReference));
+            }
+
+            // Define data method
+            MethodReference[] getMemoryMethodReferences = new MethodReference[]
+            {
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalUnusedReservedMemoryLong")),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalAllocatedMemoryLong")),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalReservedMemoryLong")),
+                ModuleDefinition.ImportReference(typeof(GC).GetMethod("Collect", new Type[] { })),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoUsedSizeLong")),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoHeapSizeLong"))
+            };
+
+            for (int i = 0; i < getMemoryMethodReferences.Length; i++)
+            {
+                ILProcessor.InsertBefore(MethodFirstInstruction,
+                    ILProcessor.Create(OpCodes.Call, getMemoryMethodReferences[i]));
+
+                // for GC.Collect method, there is no value be generated
+                if (i == 3)
+                {
+                    continue;
+                }
+
+                int localIdxOffset = i < 3 ? i : i - 1;
+
+                // Format memory size
+                MethodReference formatMethodRef = ModuleDefinition.ImportReference(
+                    typeof(SizeFormatter).GetMethod("FormatSize", new Type[]{ typeof(long) }));
+                Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatMethodRef);
+                ILProcessor.InsertBefore(MethodFirstInstruction, formatInstruction);
+
+                // Store the formatted memory size
+                Instruction stLocDataStrInstruction = ILProcessor.Create(OpCodes.Stloc,
+                    OriginVariablesCount + localIdxOffset);
+                ILProcessor.InsertBefore(MethodFirstInstruction, stLocDataStrInstruction);
+            }
+
+            string logFormatStr = "Mono heap size: {0}; Mono used size: {1}; Total reserved memory: {2}; " +
+                                  "Total allocated memory: {3}; Total unused reserved memory: {4}";
+            Instruction ldStrLogFormatStrInstruction = ILProcessor.Create(OpCodes.Ldstr, logFormatStr);
+            ILProcessor.InsertBefore(MethodFirstInstruction, ldStrLogFormatStrInstruction);
+
+            Instruction ldcLogFormatParamsCountInstruction = ILProcessor.Create(OpCodes.Ldc_I4, logParamsCount);
+            ILProcessor.InsertBefore(MethodFirstInstruction, ldcLogFormatParamsCountInstruction);
+
+            TypeReference logFormatParamTypeReference = ModuleDefinition.ImportReference(typeof(object));
+            Instruction newArrLogFormatParamsInstruction = ILProcessor.Create(OpCodes.Newarr,
+                logFormatParamTypeReference);
+            ILProcessor.InsertBefore(MethodFirstInstruction, newArrLogFormatParamsInstruction);
+
+            // Copy the stored memory size to array
+            for (int i = 0; i < logParamsCount; i++)
+            {
+                Instruction dupLogFormatParamsArrInstruction = ILProcessor.Create(OpCodes.Dup);
+                ILProcessor.InsertBefore(MethodFirstInstruction, dupLogFormatParamsArrInstruction);
+
+                Instruction ldcIndexLogFormatParamsInstruction = ILProcessor.Create(OpCodes.Ldc_I4, i);
+                ILProcessor.InsertBefore(MethodFirstInstruction, ldcIndexLogFormatParamsInstruction);
+                Instruction ldLocIndexParamInstruction = ILProcessor.Create(OpCodes.Ldloc,
+                    OriginVariablesCount + i);
+                ILProcessor.InsertBefore(MethodFirstInstruction, ldLocIndexParamInstruction);
+                Instruction stelemParamRefInstruction = ILProcessor.Create(OpCodes.Stelem_Ref);
+                ILProcessor.InsertBefore(MethodFirstInstruction, stelemParamRefInstruction);
+            }
+
+            // Print
+            MethodReference logFormatMethodReference = ModuleDefinition.ImportReference(
+                typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
+            Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
+            ILProcessor.InsertBefore(MethodFirstInstruction, logMethodInstruction);
         }
     }
 }

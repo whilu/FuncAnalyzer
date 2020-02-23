@@ -1,29 +1,28 @@
-﻿using System;
-using co.lujun.funcanalyzer.attribute;
+﻿using co.lujun.funcanalyzer.attribute;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace co.lujun.funcanalyzer.sample
 {
-
     public class FuncAnalyzerSample : MonoBehaviour
     {
-        [Analyze]
-        private void AnalyzeDefaultSampleFunction()
-        {
-            int i = 8;
-        }
-
-        [Analyze(AnalyzingFlags = Flags.Args)]
-        private void AnalyzeArgsSampleFunction()
-        {
-            int i = 8;
-        }
-
-        [Analyze(AnalyzingFlags = Flags.Ret)]
-        private void AnalyzeRetSampleFunction()
-        {
-            int i = 8;
-        }
+//        [Analyze]
+//        private void AnalyzeDefaultSampleFunction()
+//        {
+//            int i = 8;
+//        }
+//
+//        [Analyze(AnalyzingFlags = Flags.Args)]
+//        private void AnalyzeArgsSampleFunction()
+//        {
+//            int i = 8;
+//        }
+//
+//        [Analyze(AnalyzingFlags = Flags.Ret)]
+//        private void AnalyzeRetSampleFunction()
+//        {
+//            int i = 8;
+//        }
 
         [Analyze(AnalyzingFlags = Flags.Time)]
         private void AnalyzeTimeSampleFunction()
@@ -37,26 +36,26 @@ namespace co.lujun.funcanalyzer.sample
             int i = 8;
         }
 
-        [Analyze(AnalyzingFlags = Flags.Args | Flags.Time)]
-        private void AnalyzeArgsAndTimeSampleFunction()
-        {
-            int i = 8;
-        }
+//        [Analyze(AnalyzingFlags = Flags.Args | Flags.Time)]
+//        private void AnalyzeArgsAndTimeSampleFunction()
+//        {
+//            int i = 8;
+//        }
 
-        private void NoAnalyzeSampleFunction()
-        {
-            int i = 8;
-        }
+//        private void NoAnalyzeSampleFunction()
+//        {
+//            int i = 8;
+//        }
 
         private void Start()
         {
-            AnalyzeDefaultSampleFunction();
-            AnalyzeArgsSampleFunction();
-            AnalyzeRetSampleFunction();
+//            AnalyzeDefaultSampleFunction();
+//            AnalyzeArgsSampleFunction();
+//            AnalyzeRetSampleFunction();
             AnalyzeTimeSampleFunction();
             AnalyzeMemorySampleFunction();
-            AnalyzeArgsAndTimeSampleFunction();
-            NoAnalyzeSampleFunction();
+//            AnalyzeArgsAndTimeSampleFunction();
+//            NoAnalyzeSampleFunction();
         }
     }
 
