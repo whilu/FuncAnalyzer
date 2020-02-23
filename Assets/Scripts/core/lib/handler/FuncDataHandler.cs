@@ -28,22 +28,59 @@ namespace co.lujun.funcanalyzer.handler
 
         private void GenerateAnalysisCodeForArgs()
         {
-//            StringBuilder builder = new StringBuilder().Append(MethodDefinition.Name).Append(" - ");
-//
-//            if (MethodDefinition.HasParameters)
-//            {
-//                bool staticMethod = MethodDefinition.IsStatic;
-//                for (int i = 0; i < MethodDefinition.Parameters.Count; i++)
-//                {
-//                    ParameterDefinition parameter = MethodDefinition.Parameters[i];
-//                    Debug.Log("GenerateAnalysisCodeForArgs - " + MethodDefinition.Name +
-//                              " - name = " + parameter.Name + ", index = " + parameter.Index + ", type = " + parameter.ParameterType.Name);
-//                }
-//            }
-//            else
-//            {
-//                builder.Append("Method has no parameters");
-//            }
+            StringBuilder builder = new StringBuilder().Append(MethodDefinition.Name).Append(" - ");
+
+            if (MethodDefinition.HasParameters)
+            {
+                int paramtersCount = MethodDefinition.Parameters.Count;
+
+                for (int i = 0; i < paramtersCount; i++)
+                {
+                    ParameterDefinition parameter = MethodDefinition.Parameters[i];
+                    TypeReference paramTypeReference = parameter.ParameterType;
+
+                    MethodDefinition.Body.Variables.Add(new VariableDefinition(
+                        ModuleDefinition.ImportReference(typeof(string)))
+                    );
+
+                    int ldArgIdx = MethodDefinition.IsStatic ? i : i + 1;
+
+                    // Ldarg arg with specify position
+                    Instruction ldArgInstruction = ILProcessor.Create(OpCodes.Ldarg, ldArgIdx);
+                    ILProcessor.InsertBefore(MethodFirstInstruction, ldArgInstruction);
+
+                    // TODO need to store to record frame, and pop from record frame with ref
+
+                    // Get type with type name
+                    Type paramType = Type.GetType(paramTypeReference.FullName);
+                    if (paramType == null)
+                    {
+                        paramType = Type.GetType(Assembly.CreateQualifiedName(paramTypeReference.Module.Assembly.FullName,
+                            paramTypeReference.FullName));
+                    }
+
+                    // ToString
+                    MethodReference toStringMethodRef = ModuleDefinition.ImportReference(paramType.GetMethod("ToString",
+                        new Type[] { }));
+                    Instruction toStringInstruction = ILProcessor.Create(OpCodes.Call, toStringMethodRef);
+                    ILProcessor.InsertBefore(MethodLastInstruction, toStringInstruction);
+
+                    // Store
+                    Instruction stLocArgStrStrInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 1);
+                    ILProcessor.InsertBefore(MethodLastInstruction, stLocArgStrStrInstruction);
+
+                    // eg: string msg(value: hello world), int level(value: 8)
+                    builder.Append(paramTypeReference.Name).Append(" ");
+                    builder.Append(parameter.Name).Append("(value: ");
+                    builder.Append("{").Append(i).Append("}").Append("), ");
+                }
+
+                builder.Remove(builder.Length - 2, 2);
+            }
+            else
+            {
+                builder.Append("Method has no parameters");
+            }
         }
 
 
@@ -57,7 +94,7 @@ namespace co.lujun.funcanalyzer.handler
 
             if (!voidReturn)
             {
-                builder.Append(string.Format("Return '{0}' ", retTypeName)).Append("(value {0})");
+                builder.Append(string.Format("Return '{0}' ", retTypeName)).Append("(value: {0})");
 
                 MethodDefinition.Body.Variables.Add(new VariableDefinition(retTypeReference));
 

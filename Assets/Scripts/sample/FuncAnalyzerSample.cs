@@ -5,25 +5,25 @@ namespace co.lujun.funcanalyzer.sample
 {
     public class FuncAnalyzerSample : MonoBehaviour
     {
-        [Analyze]
-        private int AnalyzeDefaultSampleFunction(string msg, int level)
-        {
-            int i = 8;
-            return i;
-        }
-
-//        [Analyze(AnalyzingFlags = Flags.Args)]
-//        private void AnalyzeArgsSampleFunction(string msg, int level, object o)
+//        [Analyze]
+//        private int AnalyzeDefaultSampleFunction(string msg, int level)
 //        {
 //            int i = 8;
+//            return i;
 //        }
 
-        [Analyze(AnalyzingFlags = Flags.Ret)]
-        private int AnalyzeRetSampleFunction()
+        [Analyze(AnalyzingFlags = Flags.Args)]
+        private void AnalyzeArgsSampleFunction(string msg, int level, object o)
         {
             int i = 8;
-            return i;
         }
+
+//        [Analyze(AnalyzingFlags = Flags.Ret)]
+//        private int AnalyzeRetSampleFunction()
+//        {
+//            int i = 8;
+//            return i;
+//        }
 
 //        [Analyze(AnalyzingFlags = Flags.Time)]
 //        private void AnalyzeTimeSampleFunction()
@@ -50,9 +50,9 @@ namespace co.lujun.funcanalyzer.sample
 
         private void Start()
         {
-            AnalyzeDefaultSampleFunction("Hello world!", 22);
-//            AnalyzeArgsSampleFunction("Hello world!", 22, new object());
-            AnalyzeRetSampleFunction();
+//            AnalyzeDefaultSampleFunction("Hello world!", 22);
+            AnalyzeArgsSampleFunction("Hello world!", 22, new object());
+//            AnalyzeRetSampleFunction();
 //            AnalyzeTimeSampleFunction();
 //            AnalyzeMemorySampleFunction();
 //            AnalyzeArgsAndTimeSampleFunction();
