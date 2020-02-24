@@ -29,10 +29,11 @@ namespace co.lujun.funcanalyzer.handler
         private void GenerateAnalysisCodeForArgs()
         {
             StringBuilder builder = new StringBuilder().Append(MethodDefinition.Name).Append(" - ");
+            int paramtersCount = 0;
 
             if (MethodDefinition.HasParameters)
             {
-                int paramtersCount = MethodDefinition.Parameters.Count;
+                paramtersCount = MethodDefinition.Parameters.Count;
 
                 for (int i = 0; i < paramtersCount; i++)
                 {
@@ -45,11 +46,10 @@ namespace co.lujun.funcanalyzer.handler
 
                     int ldArgIdx = MethodDefinition.IsStatic ? i : i + 1;
 
-                    // Ldarg arg with specify position
-                    Instruction ldArgInstruction = ILProcessor.Create(OpCodes.Ldarg, ldArgIdx);
+                    // Ldarg with specify position
+                    Instruction ldArgInstruction = ILProcessor.Create(
+                        paramTypeReference.IsValueType ? OpCodes.Ldarga : OpCodes.Ldarg, ldArgIdx);
                     ILProcessor.InsertBefore(MethodFirstInstruction, ldArgInstruction);
-
-                    // TODO need to store to record frame, and pop from record frame with ref
 
                     // Get type with type name
                     Type paramType = Type.GetType(paramTypeReference.FullName);
@@ -63,11 +63,11 @@ namespace co.lujun.funcanalyzer.handler
                     MethodReference toStringMethodRef = ModuleDefinition.ImportReference(paramType.GetMethod("ToString",
                         new Type[] { }));
                     Instruction toStringInstruction = ILProcessor.Create(OpCodes.Call, toStringMethodRef);
-                    ILProcessor.InsertBefore(MethodLastInstruction, toStringInstruction);
+                    ILProcessor.InsertBefore(MethodFirstInstruction, toStringInstruction);
 
                     // Store
                     Instruction stLocArgStrStrInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 1);
-                    ILProcessor.InsertBefore(MethodLastInstruction, stLocArgStrStrInstruction);
+                    ILProcessor.InsertBefore(MethodFirstInstruction, stLocArgStrStrInstruction);
 
                     // eg: string msg(value: hello world), int level(value: 8)
                     builder.Append(paramTypeReference.Name).Append(" ");
@@ -81,6 +81,40 @@ namespace co.lujun.funcanalyzer.handler
             {
                 builder.Append("Method has no parameters");
             }
+
+            // Push the LogFormat method's string param to Evaluation Stack
+            Instruction ldStrLogFormatStrInstruction = ILProcessor.Create(OpCodes.Ldstr, builder.ToString());
+            ILProcessor.InsertBefore(MethodLastInstruction, ldStrLogFormatStrInstruction);
+
+            // Push the LogFormat method's extra param count to Evaluation Stack
+            Instruction ldcLogFormatParamsCountInstruction = ILProcessor.Create(OpCodes.Ldc_I4, paramtersCount);
+            ILProcessor.InsertBefore(MethodLastInstruction, ldcLogFormatParamsCountInstruction);
+
+            // New array for LogFormat method's extra param
+            TypeReference logFormatParamTypeReference = ModuleDefinition.ImportReference(typeof(object));
+            Instruction newArrLogFormatParamsInstruction = ILProcessor.Create(OpCodes.Newarr,
+                logFormatParamTypeReference);
+            ILProcessor.InsertBefore(MethodLastInstruction, newArrLogFormatParamsInstruction);
+
+            for (int i = 0; i < paramtersCount; i++)
+            {
+                Instruction dupLogFormatParamsArrInstruction = ILProcessor.Create(OpCodes.Dup);
+                ILProcessor.InsertBefore(MethodLastInstruction, dupLogFormatParamsArrInstruction);
+
+                Instruction ldcILogFormatParamsInstruction = ILProcessor.Create(OpCodes.Ldc_I4, i);
+                ILProcessor.InsertBefore(MethodLastInstruction, ldcILogFormatParamsInstruction);
+                Instruction ldLocParamInstruction = ILProcessor.Create(
+                    OpCodes.Ldloc, OriginVariablesCount - paramtersCount + i);
+                ILProcessor.InsertBefore(MethodLastInstruction, ldLocParamInstruction);
+                Instruction stelemParamRefInstruction = ILProcessor.Create(OpCodes.Stelem_Ref);
+                ILProcessor.InsertBefore(MethodLastInstruction, stelemParamRefInstruction);
+            }
+
+            // Print
+            MethodReference logFormatMethodReference = ModuleDefinition.ImportReference(
+                typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
+            Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
+            ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
         }
 
 
@@ -108,7 +142,8 @@ namespace co.lujun.funcanalyzer.handler
                 // Push the clone return value to Record Frame
                 Instruction stLocRetValueInstruction = ILProcessor.Create(OpCodes.Stloc, OriginVariablesCount - 2);
                 ILProcessor.InsertBefore(MethodLastInstruction, stLocRetValueInstruction);
-                Instruction ldlocaRetValueRefInstruction = ILProcessor.Create(retTypeReference.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, OriginVariablesCount - 2);
+                Instruction ldlocaRetValueRefInstruction = ILProcessor.Create(
+                    retTypeReference.IsValueType ? OpCodes.Ldloca : OpCodes.Ldloc, OriginVariablesCount - 2);
                 ILProcessor.InsertBefore(MethodLastInstruction, ldlocaRetValueRefInstruction);
 
                 // Get type with type name

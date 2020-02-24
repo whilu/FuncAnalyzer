@@ -55,6 +55,8 @@ namespace co.lujun.funcanalyzer
 
             assemblyDefinition.Write(assemblyPath, new WriterParameters(){ WriteSymbols = true });
             assemblyDefinition.Dispose();
+
+            Debug.Log("Analysis code injected!");
         }
 
         private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
