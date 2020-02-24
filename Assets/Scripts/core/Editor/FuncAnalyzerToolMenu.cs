@@ -7,7 +7,7 @@ namespace co.lujun.funcanalyzer.editor
         private const string BaseMenuLabel = "FuncAnalyzer/";
         private const string AssemblyPath = "./Library/ScriptAssemblies/Assembly-CSharp.dll";
 
-        [MenuItem(BaseMenuLabel + "Inject")]
+        [MenuItem(BaseMenuLabel + "Inject analysis code")]
         public static void Inject()
         {
             Analyzer.Instance.Inject(AssemblyPath);
