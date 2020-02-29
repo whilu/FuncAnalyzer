@@ -13,28 +13,18 @@ namespace co.lujun.funcanalyzer.util
                 Directory.CreateDirectory(Common.FuncAnalyzerPath);
             }
 
-            if (File.Exists(Common.AssemblyPathBakPath))
+            if (File.Exists(Common.AssemblyBakPath))
             {
-                File.Delete(Common.AssemblyPathBakPath);
+                File.Delete(Common.AssemblyBakPath);
             }
 
-            FileUtil.CopyFileOrDirectory(Common.AssemblyPath, Common.AssemblyPathBakPath);
-        }
-
-        public static void ResetBackupAssemblyFile()
-        {
-            if (!File.Exists(Common.AssemblyPathBakPath))
+            if (File.Exists(Common.AssemblyPdbBakPath))
             {
-                Debug.LogFormat("No assembly dll backup found in {0}", Common.AssemblyPathBakPath);
-                return;
+                File.Delete(Common.AssemblyPdbBakPath);
             }
 
-            if (File.Exists(Common.AssemblyPath))
-            {
-                File.Delete(Common.AssemblyPath);
-            }
-
-            FileUtil.CopyFileOrDirectory(Common.AssemblyPathBakPath, Common.AssemblyPath);
+            FileUtil.CopyFileOrDirectory(Common.AssemblyPath, Common.AssemblyBakPath);
+            FileUtil.CopyFileOrDirectory(Common.AssemblyPdbPath, Common.AssemblyPdbBakPath);
         }
     }
 }

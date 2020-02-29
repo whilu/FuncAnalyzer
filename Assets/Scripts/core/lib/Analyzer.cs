@@ -24,13 +24,29 @@ namespace co.lujun.funcanalyzer
         {
         }
 
-        public void Inject(string assemblyPath)
+        public void ResetAnalysisCode(string assemblyPath, string backupAssemblyPath)
         {
-            if (Application.isPlaying || EditorApplication.isCompiling)
+            RuntimeCheck();
+
+            ReaderParameters readerParameters = new ReaderParameters(){ ReadSymbols = true };
+            AssemblyDefinition backupAssemblyDefinition =
+                AssemblyDefinition.ReadAssembly(backupAssemblyPath, readerParameters);
+
+            if (backupAssemblyDefinition == null)
             {
-                Debug.Log("Application or editor application is busy...");
+                Debug.LogFormat("Backup assembly could not be found in {0}", backupAssemblyPath);
                 return;
             }
+
+            backupAssemblyDefinition.Write(assemblyPath, new WriterParameters(){ WriteSymbols = true });
+            backupAssemblyDefinition.Dispose();
+
+            Debug.Log("Analysis code have been removed!");
+        }
+
+        public void Inject(string assemblyPath)
+        {
+            RuntimeCheck();
 
             ReaderParameters readerParameters = new ReaderParameters(){ ReadSymbols = true };
             AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyPath, readerParameters);
@@ -131,6 +147,15 @@ namespace co.lujun.funcanalyzer
             // inject handler
             funcDataHandler?.Inject(moduleDefinition, methodDefinition, flags);
             runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, flags);
+        }
+
+        private void RuntimeCheck()
+        {
+            if (Application.isPlaying || EditorApplication.isCompiling)
+            {
+                Debug.Log("Application or editor application is busy...");
+                return;
+            }
         }
     }
 }
