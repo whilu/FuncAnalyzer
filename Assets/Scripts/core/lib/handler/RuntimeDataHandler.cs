@@ -10,9 +10,10 @@ namespace co.lujun.funcanalyzer.handler
 {
     public class RuntimeDataHandler : HandlerImpl
     {
-        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition, Flags flags)
         {
-            base.Inject(moduleDefinition, methodDefinition, flags);
+            base.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
 
             // including function 'execute time' analyze
             if ((flags & Flags.Time) != 0)

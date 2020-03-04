@@ -1,6 +1,4 @@
-using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace co.lujun.funcanalyzer.editor
 {
@@ -12,9 +10,7 @@ namespace co.lujun.funcanalyzer.editor
         [UnityEditor.Callbacks.DidReloadScripts]
         static void ReloadedScripts()
         {
-//            Debug.Log("ReloadedScripts");
+            FuncAnalyzerToolEditor.AutoInject();
         }
-
-
     }
 }

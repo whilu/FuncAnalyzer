@@ -9,14 +9,13 @@
           <e p="core" t="Include">
             <e p="Editor" t="Include">
               <e p="AssemblyBuilder.cs" t="Include" />
-              <e p="FuncAnalyzerToolMenu.cs" t="Include" />
+              <e p="FuncAnalyzerToolEditor.cs" t="Include" />
             </e>
             <e p="lib" t="Include">
               <e p="Analyzer.cs" t="Include" />
               <e p="attribute" t="Include">
                 <e p="AnalyzeAttribute.cs" t="Include" />
               </e>
-              <e p="Common.cs" t="Include" />
               <e p="Flags.cs" t="Include" />
               <e p="handler" t="Include">
                 <e p="FuncDataHandler.cs" t="Include" />
@@ -27,7 +26,6 @@
                 <e p="IHandler.cs" t="Include" />
               </e>
               <e p="util" t="Include">
-                <e p="AssemblyFileUtil.cs" t="Include" />
                 <e p="SizeFormatter.cs" t="Include" />
               </e>
             </e>

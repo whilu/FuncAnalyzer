@@ -1,7 +1,10 @@
-﻿using co.lujun.funcanalyzer.attribute;
+﻿using System;
+using System.IO;
+using co.lujun.funcanalyzer.attribute;
 using co.lujun.funcanalyzer.handler;
 using co.lujun.funcanalyzer.imodule;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -24,36 +27,39 @@ namespace co.lujun.funcanalyzer
         {
         }
 
-        public void ResetAnalysisCode(string assemblyPath, string backupAssemblyPath)
+        private const string ExecuteInjectInjectFlagMethod = "co_lujun_funcanalyzer_ExecuteInjectFlag";
+
+        public void Inject(string assemblyPath, bool enable, Action<float, string> callback)
         {
-            RuntimeCheck();
+            callback(.0f, "Start inject...");
 
-            ReaderParameters readerParameters = new ReaderParameters(){ ReadSymbols = true };
-            AssemblyDefinition backupAssemblyDefinition =
-                AssemblyDefinition.ReadAssembly(backupAssemblyPath, readerParameters);
-
-            if (backupAssemblyDefinition == null)
+            if (Application.isPlaying || EditorApplication.isCompiling)
             {
-                Debug.LogFormat("Backup assembly could not be found in {0}", backupAssemblyPath);
+                string msg = "Application or editor application is busy...";
+
+                callback(1.0f, msg);
+                Debug.Log(msg);
                 return;
             }
 
-            backupAssemblyDefinition.Write(assemblyPath, new WriterParameters(){ WriteSymbols = true });
-            backupAssemblyDefinition.Dispose();
+            if (!File.Exists(assemblyPath))
+            {
+                string msg = string.Format("Can not load file with specify path: {0}", assemblyPath);
 
-            Debug.Log("Analysis code have been removed!");
-        }
-
-        public void Inject(string assemblyPath)
-        {
-            RuntimeCheck();
+                callback(1.0f, msg);
+                Debug.LogWarning(msg);
+                return;
+            }
 
             ReaderParameters readerParameters = new ReaderParameters(){ ReadSymbols = true };
             AssemblyDefinition assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyPath, readerParameters);
 
             if (assemblyDefinition == null)
             {
-                Debug.LogFormat("Can not load assembly from specify path: {0}", assemblyPath);
+                string msg = string.Format("Can not load assembly from specify path: {0}", assemblyPath);
+
+                callback(1.0f, msg);
+                Debug.LogWarning(msg);
                 return;
             }
 
@@ -61,11 +67,34 @@ namespace co.lujun.funcanalyzer
 
             for (int i = 0; i < moduleDefinition.Types.Count; i++)
             {
-                Collection<MethodDefinition> methods = moduleDefinition.Types[i].Methods;
+                TypeDefinition typeDefinition = moduleDefinition.Types[i];
+                Collection<MethodDefinition> methods = typeDefinition.Methods;
 
+                MethodDefinition injectFlagMethodDefinition = null;
                 for (int j = 0; j < methods.Count; j++)
                 {
-                    AnalyzeFunc(moduleDefinition, methods[j]);
+                    if (methods[j].Name.Equals(ExecuteInjectInjectFlagMethod))
+                    {
+                        injectFlagMethodDefinition = methods[j];
+                        break;
+                    }
+                }
+
+                // This type has already injected analysis code, just update enable state
+                if (injectFlagMethodDefinition != null)
+                {
+                    SetFlagMethod(injectFlagMethodDefinition, enable);
+                }
+                else
+                {
+                    // Inject flag method for this type first
+                    injectFlagMethodDefinition = InjectFlagMethod(moduleDefinition, typeDefinition, enable);
+
+                    // Inject analysis code for specify methods
+                    for (int j = 0; j < methods.Count; j++)
+                    {
+                        AnalyzeFunc(moduleDefinition, methods[j], injectFlagMethodDefinition);
+                    }
                 }
             }
 
@@ -75,7 +104,38 @@ namespace co.lujun.funcanalyzer
             Debug.Log("Analysis code injected!");
         }
 
-        private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        private MethodDefinition InjectFlagMethod(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
+            bool enable)
+        {
+            // New method
+            MethodDefinition injectFlgMethodDefinition = new MethodDefinition(ExecuteInjectInjectFlagMethod,
+                MethodAttributes.Private | MethodAttributes.HideBySig, moduleDefinition.TypeSystem.Boolean);
+            typeDefinition.Methods.Add(injectFlgMethodDefinition);
+
+            // Add local variable with bool type
+            VariableDefinition boolVariableDefinition =
+                new VariableDefinition(moduleDefinition.ImportReference(typeof(bool)));
+            injectFlgMethodDefinition.Body.Variables.Add(boolVariableDefinition);
+
+            // Set return value code
+            SetFlagMethod(injectFlgMethodDefinition, enable);
+
+            return injectFlgMethodDefinition;
+        }
+
+        private void SetFlagMethod(MethodDefinition methodDefinition, bool enable)
+        {
+            ILProcessor ilProcessor = methodDefinition.Body.GetILProcessor();
+            methodDefinition.Body.Instructions.Clear();
+
+            ilProcessor.Emit(OpCodes.Ldc_I4, enable ? 1 : 0);
+            ilProcessor.Emit(OpCodes.Stloc, 0);
+            ilProcessor.Emit(OpCodes.Ldloc, 0);
+            ilProcessor.Emit(OpCodes.Ret);
+        }
+
+        private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition)
         {
             string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
             bool needAnalyze = false;
@@ -93,30 +153,14 @@ namespace co.lujun.funcanalyzer
                 }
             }
 
-//            Debug.LogFormat("AnalyzeFunc - method name: {0}, need analyze: {1}, flags: {2}",
-//                methodDefinition.FullName, needAnalyze, flags);
-
             if (needAnalyze)
             {
-                InjectILCode(moduleDefinition, methodDefinition, flags);
+                InjectILCode(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
             }
         }
 
-        private void AnalyzeAttr<T>(CustomAttribute attribute, string argName, ref T t)
-        {
-            for (int i = 0; i < attribute.Properties.Count; i++)
-            {
-                CustomAttributeNamedArgument attributeNamedArgument = attribute.Properties[i];
-
-                if (attributeNamedArgument.Name.Equals(argName))
-                {
-                    t = (T) attributeNamedArgument.Argument.Value;
-                    break;
-                }
-            }
-        }
-
-        private void InjectILCode(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
+        private void InjectILCode(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition, Flags flags)
         {
             IHandler funcDataHandler = null;
             IHandler runTimeDataHandler = null;
@@ -140,21 +184,22 @@ namespace co.lujun.funcanalyzer
                 }
             }
 
-//            Debug.LogFormat("InjectILCode - method name: {0}, flags: {1}, " +
-//                "funcDataHandler not null: {2}, runTimeDataHandler not null: {3}",
-//                methodDefinition.FullName, flags, funcDataHandler != null, runTimeDataHandler != null);
-
             // inject handler
-            funcDataHandler?.Inject(moduleDefinition, methodDefinition, flags);
-            runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, flags);
+            funcDataHandler?.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
+            runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
         }
 
-        private void RuntimeCheck()
+        private void AnalyzeAttr<T>(CustomAttribute attribute, string argName, ref T t)
         {
-            if (Application.isPlaying || EditorApplication.isCompiling)
+            for (int i = 0; i < attribute.Properties.Count; i++)
             {
-                Debug.Log("Application or editor application is busy...");
-                return;
+                CustomAttributeNamedArgument attributeNamedArgument = attribute.Properties[i];
+
+                if (attributeNamedArgument.Name.Equals(argName))
+                {
+                    t = (T) attributeNamedArgument.Argument.Value;
+                    break;
+                }
             }
         }
     }

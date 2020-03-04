@@ -9,9 +9,10 @@ namespace co.lujun.funcanalyzer.handler
 {
     public class FuncDataHandler : HandlerImpl
     {
-        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition, Flags flags)
         {
-            base.Inject(moduleDefinition, methodDefinition, flags);
+            base.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
 
             // including function 'args' analyze
             if((flags & Flags.Args) != 0)

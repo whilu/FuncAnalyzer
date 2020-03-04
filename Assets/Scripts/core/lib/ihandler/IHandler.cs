@@ -7,11 +7,13 @@ namespace co.lujun.funcanalyzer.imodule
     {
         ModuleDefinition ModuleDefinition { get; set; }
         MethodDefinition MethodDefinition { get; set; }
+        MethodDefinition InjectFlagMethodDefinition { get; set; }
         ILProcessor ILProcessor { get; set; }
         Instruction MethodFirstInstruction { get; set; }
         Instruction MethodLastInstruction { get; set; }
         int OriginVariablesCount { get; }
         Flags Flags { get; set; }
-        void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags);
+        void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition, Flags flags);
     }
 }

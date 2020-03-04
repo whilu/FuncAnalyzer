@@ -58,6 +58,12 @@ namespace co.lujun.funcanalyzer.sample
             AnalyzeArgsAndTimeSampleFunction("你好", 3.222d);
             NoAnalyzeSampleFunction();
         }
+
+        private bool BollTest()
+        {
+            bool res = false;
+            return res;
+        }
     }
 
 }

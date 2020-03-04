@@ -10,6 +10,8 @@ namespace co.lujun.funcanalyzer.handler
 
         public MethodDefinition MethodDefinition { get; set; }
 
+        public MethodDefinition InjectFlagMethodDefinition { get; set; }
+
         public ILProcessor ILProcessor { get; set; }
 
         public Instruction MethodFirstInstruction { get; set; }
@@ -23,10 +25,12 @@ namespace co.lujun.funcanalyzer.handler
 
         public Flags Flags { get; set; }
 
-        public virtual void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, Flags flags)
+        public virtual void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
+            MethodDefinition injectFlagMethodDefinition, Flags flags)
         {
             ModuleDefinition = moduleDefinition;
             MethodDefinition = methodDefinition;
+            InjectFlagMethodDefinition = injectFlagMethodDefinition;
             ILProcessor = methodDefinition.Body.GetILProcessor();
             MethodFirstInstruction = methodDefinition.Body.Instructions[0];
             MethodLastInstruction = methodDefinition.Body.Instructions[methodDefinition.Body.Instructions.Count - 1];
