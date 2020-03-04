@@ -31,7 +31,7 @@ namespace co.lujun.funcanalyzer
 
         public void Inject(string assemblyPath, bool enable, Action<float, string> callback)
         {
-            callback(.0f, "Start inject...");
+            callback(.0f, "Start load assembly...");
 
             if (Application.isPlaying || EditorApplication.isCompiling)
             {
@@ -63,6 +63,7 @@ namespace co.lujun.funcanalyzer
                 return;
             }
 
+            callback(.3f, "Start inject...");
             ModuleDefinition moduleDefinition = assemblyDefinition.MainModule;
 
             for (int i = 0; i < moduleDefinition.Types.Count; i++)
@@ -98,10 +99,12 @@ namespace co.lujun.funcanalyzer
                 }
             }
 
+            callback(.8f, "Start write assembly...");
+
             assemblyDefinition.Write(assemblyPath, new WriterParameters(){ WriteSymbols = true });
             assemblyDefinition.Dispose();
 
-            Debug.Log("Analysis code injected!");
+            callback(1.0f, "Analysis code injected!");
         }
 
         private MethodDefinition InjectFlagMethod(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
