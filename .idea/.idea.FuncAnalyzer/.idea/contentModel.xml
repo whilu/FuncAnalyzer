@@ -2,36 +2,40 @@
 <project version="4">
   <component name="ContentModelStore">
     <e p="$PROJECT_DIR$" t="IncludeRecursive">
-      <e p="Assembly-CSharp-Editor.csproj" t="IncludeRecursive" />
-      <e p="Assembly-CSharp.csproj" t="IncludeRecursive" />
+      <e p="Assembly-CSharp-Editor-firstpass.csproj" t="IncludeRecursive" />
+      <e p="Assembly-CSharp-firstpass.csproj" t="IncludeRecursive" />
       <e p="Assets" t="Include">
-        <e p="Scripts" t="Include">
-          <e p="core" t="Include">
-            <e p="Editor" t="Include">
-              <e p="AssemblyBuilder.cs" t="Include" />
-              <e p="FuncAnalyzerToolEditor.cs" t="Include" />
+        <e p="Plugins" t="Include">
+          <e p="FuncAnalyzer" t="Include">
+            <e p="core" t="Include">
+              <e p="Editor" t="Include">
+                <e p="AssemblyBuilder.cs" t="Include" />
+                <e p="FuncAnalyzerToolEditor.cs" t="Include" />
+              </e>
+              <e p="lib" t="Include">
+                <e p="Analyzer.cs" t="Include" />
+                <e p="attribute" t="Include">
+                  <e p="AnalyzeAttribute.cs" t="Include" />
+                </e>
+                <e p="Flags.cs" t="Include" />
+                <e p="handler" t="Include">
+                  <e p="FuncDataHandler.cs" t="Include" />
+                  <e p="HandlerImpl.cs" t="Include" />
+                  <e p="RuntimeDataHandler.cs" t="Include" />
+                </e>
+                <e p="ihandler" t="Include">
+                  <e p="IHandler.cs" t="Include" />
+                </e>
+                <e p="util" t="Include">
+                  <e p="SizeFormatter.cs" t="Include" />
+                </e>
+              </e>
             </e>
-            <e p="lib" t="Include">
-              <e p="Analyzer.cs" t="Include" />
-              <e p="attribute" t="Include">
-                <e p="AnalyzeAttribute.cs" t="Include" />
-              </e>
-              <e p="Flags.cs" t="Include" />
-              <e p="handler" t="Include">
-                <e p="FuncDataHandler.cs" t="Include" />
-                <e p="HandlerImpl.cs" t="Include" />
-                <e p="RuntimeDataHandler.cs" t="Include" />
-              </e>
-              <e p="ihandler" t="Include">
-                <e p="IHandler.cs" t="Include" />
-              </e>
-              <e p="util" t="Include">
-                <e p="SizeFormatter.cs" t="Include" />
+            <e p="sample" t="Include">
+              <e p="Scripts" t="Include">
+                <e p="FuncAnalyzerSample.cs" t="Include" />
               </e>
             </e>
-          </e>
-          <e p="sample" t="Include">
-            <e p="FuncAnalyzerSample.cs" t="Include" />
           </e>
         </e>
       </e>

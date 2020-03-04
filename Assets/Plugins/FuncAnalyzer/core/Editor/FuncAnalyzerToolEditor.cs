@@ -12,7 +12,7 @@ namespace co.lujun.funcanalyzer.editor
 
         private const string BaseMenuLabel = "FuncAnalyzer/";
         private const string InjectAnalysisCodeMenuLabel = BaseMenuLabel + "Inject analysis code";
-        private const string EnableAnalysisMenuLabel = BaseMenuLabel + "Enable/Disable analysis";
+        private const string EnableAnalysisMenuLabel = BaseMenuLabel + "Enable(Disable) analysis";
         private const string AutoInjectMenuLabel = BaseMenuLabel + "Auto inject";
 
 
@@ -25,7 +25,7 @@ namespace co.lujun.funcanalyzer.editor
             EditorApplication.delayCall += () => { PerformToggleAction(); };
         }
 
-        [MenuItem(InjectAnalysisCodeMenuLabel)]
+        [MenuItem(InjectAnalysisCodeMenuLabel, false, 1)]
         public static void Inject()
         {
             Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp.dll",
@@ -36,7 +36,7 @@ namespace co.lujun.funcanalyzer.editor
                 _enableAnalysis, InjectCallback);
         }
 
-        [MenuItem(EnableAnalysisMenuLabel)]
+        [MenuItem(EnableAnalysisMenuLabel, false, 2)]
         static void ToggleEnableAnalysis()
         {
             _enableAnalysis = !_enableAnalysis;
@@ -45,7 +45,7 @@ namespace co.lujun.funcanalyzer.editor
             Debug.LogFormat("{0} analysis", _enableAnalysis ? "Enable" : "Disable");
         }
 
-        [MenuItem(AutoInjectMenuLabel)]
+        [MenuItem(AutoInjectMenuLabel, false, 3)]
         static void ToggleAutoBind()
         {
             _enableAutoInject = !_enableAutoInject;
