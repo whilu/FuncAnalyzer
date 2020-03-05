@@ -9,10 +9,10 @@ namespace co.lujun.funcanalyzer.handler
 {
     public class FuncDataHandler : HandlerImpl
     {
-        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
-            MethodDefinition injectFlagMethodDefinition, Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
+            Flags flags)
         {
-            base.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
+            base.Inject(moduleDefinition, methodDefinition, enable, flags);
 
             // including function 'args' analyze
             if((flags & Flags.Args) != 0)
@@ -116,6 +116,9 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
+
+            // Check enable flag
+            InjectCheckEnableCode(ldStrLogFormatStrInstruction, MethodLastInstruction);
         }
 
 
@@ -202,6 +205,9 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
+
+            // Check enable flag
+            InjectCheckEnableCode(ldStrLogFormatStrInstruction, MethodLastInstruction);
         }
     }
 }

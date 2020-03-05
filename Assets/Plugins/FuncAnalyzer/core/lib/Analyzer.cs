@@ -4,7 +4,6 @@ using co.lujun.funcanalyzer.attribute;
 using co.lujun.funcanalyzer.handler;
 using co.lujun.funcanalyzer.imodule;
 using Mono.Cecil;
-using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -27,9 +26,9 @@ namespace co.lujun.funcanalyzer
         {
         }
 
-        private const string ExecuteInjectInjectFlagMethod = "co_lujun_funcanalyzer_ExecuteInjectFlag";
+        private const string InjectInjectFlagMethod = "co_lujun_funcanalyzer_InjectFlag";
 
-        public void Inject(string assemblyPath, bool enable, Action<float, string> callback)
+        public void Inject(string assemblyPath, Action<float, string> callback)
         {
             callback(.0f, "Start load assembly...");
 
@@ -71,31 +70,29 @@ namespace co.lujun.funcanalyzer
                 TypeDefinition typeDefinition = moduleDefinition.Types[i];
                 Collection<MethodDefinition> methods = typeDefinition.Methods;
 
-                MethodDefinition injectFlagMethodDefinition = null;
+                bool injectFlagMethodExist = false;
                 for (int j = 0; j < methods.Count; j++)
                 {
-                    if (methods[j].Name.Equals(ExecuteInjectInjectFlagMethod))
+                    if (methods[j].Name.Equals(InjectInjectFlagMethod))
                     {
-                        injectFlagMethodDefinition = methods[j];
+                        injectFlagMethodExist = true;
                         break;
                     }
                 }
 
-                // This type has already injected analysis code, just update enable state
-                if (injectFlagMethodDefinition != null)
+                // This type has already injected analysis code, continue
+                if (injectFlagMethodExist)
                 {
-                    SetFlagMethod(injectFlagMethodDefinition, enable);
+                    continue;
                 }
-                else
-                {
-                    // Inject flag method for this type first
-                    injectFlagMethodDefinition = InjectFlagMethod(moduleDefinition, typeDefinition, enable);
 
-                    // Inject analysis code for specify methods
-                    for (int j = 0; j < methods.Count; j++)
-                    {
-                        AnalyzeFunc(moduleDefinition, methods[j], injectFlagMethodDefinition);
-                    }
+                // Inject flag method for this type first
+                InjectFlagMethod(moduleDefinition, typeDefinition);
+
+                // Inject analysis code for specify methods
+                for (int j = 0; j < methods.Count; j++)
+                {
+                    AnalyzeFunc(moduleDefinition, methods[j]);
                 }
             }
 
@@ -107,41 +104,19 @@ namespace co.lujun.funcanalyzer
             callback(1.0f, "Analysis code injected!");
         }
 
-        private MethodDefinition InjectFlagMethod(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
-            bool enable)
+        private void InjectFlagMethod(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition)
         {
             // New method
-            MethodDefinition injectFlgMethodDefinition = new MethodDefinition(ExecuteInjectInjectFlagMethod,
-                MethodAttributes.Private | MethodAttributes.HideBySig, moduleDefinition.TypeSystem.Boolean);
+            MethodDefinition injectFlgMethodDefinition = new MethodDefinition(InjectInjectFlagMethod,
+                MethodAttributes.Private | MethodAttributes.HideBySig, moduleDefinition.TypeSystem.Void);
             typeDefinition.Methods.Add(injectFlgMethodDefinition);
-
-            // Add local variable with bool type
-            VariableDefinition boolVariableDefinition =
-                new VariableDefinition(moduleDefinition.ImportReference(typeof(bool)));
-            injectFlgMethodDefinition.Body.Variables.Add(boolVariableDefinition);
-
-            // Set return value code
-            SetFlagMethod(injectFlgMethodDefinition, enable);
-
-            return injectFlgMethodDefinition;
         }
 
-        private void SetFlagMethod(MethodDefinition methodDefinition, bool enable)
-        {
-            ILProcessor ilProcessor = methodDefinition.Body.GetILProcessor();
-            methodDefinition.Body.Instructions.Clear();
-
-            ilProcessor.Emit(OpCodes.Ldc_I4, enable ? 1 : 0);
-            ilProcessor.Emit(OpCodes.Stloc, 0);
-            ilProcessor.Emit(OpCodes.Ldloc, 0);
-            ilProcessor.Emit(OpCodes.Ret);
-        }
-
-        private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
-            MethodDefinition injectFlagMethodDefinition)
+        private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
         {
             string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
             bool needAnalyze = false;
+            bool enable = true;
             Flags flags = Flags.Default;
 
             for (int i = 0; i < methodDefinition.CustomAttributes.Count; i++)
@@ -152,18 +127,19 @@ namespace co.lujun.funcanalyzer
                 {
                     needAnalyze = true;
                     AnalyzeAttr<Flags>(attribute, "AnalyzingFlags", ref flags);
+                    AnalyzeAttr<bool>(attribute, "Enable", ref enable);
                     break;
                 }
             }
 
             if (needAnalyze)
             {
-                InjectILCode(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
+                InjectILCode(moduleDefinition, methodDefinition, enable, flags);
             }
         }
 
-        private void InjectILCode(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
-            MethodDefinition injectFlagMethodDefinition, Flags flags)
+        private void InjectILCode(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
+            Flags flags)
         {
             IHandler funcDataHandler = null;
             IHandler runTimeDataHandler = null;
@@ -188,8 +164,8 @@ namespace co.lujun.funcanalyzer
             }
 
             // inject handler
-            funcDataHandler?.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
-            runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
+            funcDataHandler?.Inject(moduleDefinition, methodDefinition, enable, flags);
+            runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, enable, flags);
         }
 
         private void AnalyzeAttr<T>(CustomAttribute attribute, string argName, ref T t)

@@ -6,10 +6,12 @@ namespace co.lujun.funcanalyzer.attribute
     public sealed class AnalyzeAttribute : Attribute
     {
         public Flags AnalyzingFlags { get; set; }
+        public bool Enable { get; set; }
 
         public AnalyzeAttribute()
         {
             AnalyzingFlags = Flags.Default;
+            Enable = true;
         }
     }
 }

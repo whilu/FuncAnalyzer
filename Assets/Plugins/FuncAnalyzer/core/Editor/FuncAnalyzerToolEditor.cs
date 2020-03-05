@@ -8,19 +8,16 @@ namespace co.lujun.funcanalyzer.editor
     {
         private const string Pkg = "co.lujun.funcanalyzer.editor";
         private const string AutoInjectKey = Pkg + ".autoInject";
-        private const string EnableAnalysisKey = Pkg + ".enableAnalysis";
 
         private const string BaseMenuLabel = "FuncAnalyzer/";
         private const string InjectAnalysisCodeMenuLabel = BaseMenuLabel + "Inject analysis code";
-        private const string EnableAnalysisMenuLabel = BaseMenuLabel + "Enable(Disable) analysis";
         private const string AutoInjectMenuLabel = BaseMenuLabel + "Auto inject";
 
 
-        private static bool _enableAutoInject, _enableAnalysis;
+        private static bool _enableAutoInject;
         static FuncAnalyzerToolEditor()
         {
             _enableAutoInject = EditorPrefs.GetBool(AutoInjectKey, true);
-            _enableAnalysis = EditorPrefs.GetBool(EnableAnalysisKey, true);
 
             EditorApplication.delayCall += () => { PerformToggleAction(); };
         }
@@ -28,21 +25,9 @@ namespace co.lujun.funcanalyzer.editor
         [MenuItem(InjectAnalysisCodeMenuLabel, false, 1)]
         public static void Inject()
         {
-            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp.dll",
-                _enableAnalysis, InjectCallback);
-            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll",
-                _enableAnalysis, InjectCallback);
-            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-Editor.dll",
-                _enableAnalysis, InjectCallback);
-        }
-
-        [MenuItem(EnableAnalysisMenuLabel, false, 2)]
-        static void ToggleEnableAnalysis()
-        {
-            _enableAnalysis = !_enableAnalysis;
-            PerformToggleAction();
-
-            Debug.LogFormat("{0} analysis", _enableAnalysis ? "Enable" : "Disable");
+            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp.dll", InjectCallback);
+            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll", InjectCallback);
+            Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-Editor.dll", InjectCallback);
         }
 
         [MenuItem(AutoInjectMenuLabel, false, 3)]
@@ -58,9 +43,6 @@ namespace co.lujun.funcanalyzer.editor
         {
             Menu.SetChecked(AutoInjectMenuLabel, _enableAutoInject);
             EditorPrefs.SetBool(AutoInjectKey, _enableAutoInject);
-
-            Menu.SetChecked(EnableAnalysisMenuLabel, _enableAnalysis);
-            EditorPrefs.SetBool(EnableAnalysisKey, _enableAnalysis);
         }
 
         static void InjectCallback(float progress, string desc)

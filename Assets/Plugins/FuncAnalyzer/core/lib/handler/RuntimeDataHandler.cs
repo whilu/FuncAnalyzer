@@ -10,10 +10,10 @@ namespace co.lujun.funcanalyzer.handler
 {
     public class RuntimeDataHandler : HandlerImpl
     {
-        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition,
-            MethodDefinition injectFlagMethodDefinition, Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
+            Flags flags)
         {
-            base.Inject(moduleDefinition, methodDefinition, injectFlagMethodDefinition, flags);
+            base.Inject(moduleDefinition, methodDefinition, enable, flags);
 
             // including function 'execute time' analyze
             if ((flags & Flags.Time) != 0)
@@ -136,10 +136,17 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodLastInstruction, logMethodInstruction);
+
+            // Check enable flag
+            InjectCheckEnableCode(ldStrLogFormatStrInstruction, MethodLastInstruction);
         }
 
         private void GenerateAnalysisCodeForMemory()
         {
+            // Check instruction
+            Instruction checkInstruction = null;
+
+            // Log params count
             int logParamsCount = 5;
 
             // Define 5 variables for data
@@ -162,8 +169,12 @@ namespace co.lujun.funcanalyzer.handler
 
             for (int i = 0; i < getMemoryMethodReferences.Length; i++)
             {
-                ILProcessor.InsertBefore(MethodFirstInstruction,
-                    ILProcessor.Create(OpCodes.Call, getMemoryMethodReferences[i]));
+                Instruction methodInstruction = ILProcessor.Create(OpCodes.Call, getMemoryMethodReferences[i]);
+                if (checkInstruction == null)
+                {
+                    checkInstruction = methodInstruction;
+                }
+                ILProcessor.InsertBefore(MethodFirstInstruction, methodInstruction);
 
                 // for GC.Collect method, there is no value be generated
                 if (i == 3)
@@ -223,6 +234,9 @@ namespace co.lujun.funcanalyzer.handler
                 typeof(Debug).GetMethod("LogFormat", new[] {typeof(string), typeof(object[])}));
             Instruction logMethodInstruction = ILProcessor.Create(OpCodes.Call, logFormatMethodReference);
             ILProcessor.InsertBefore(MethodFirstInstruction, logMethodInstruction);
+
+            // Check enable flag
+            InjectCheckEnableCode(checkInstruction, MethodFirstInstruction);
         }
     }
 }
