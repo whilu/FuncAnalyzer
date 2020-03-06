@@ -10,10 +10,10 @@ namespace co.lujun.funcanalyzer.handler
 {
     public class RuntimeDataHandler : HandlerImpl
     {
-        public override void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
-            Flags flags)
+        public override void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
+            MethodDefinition methodDefinition, bool enable, Flags flags)
         {
-            base.Inject(moduleDefinition, methodDefinition, enable, flags);
+            base.Inject(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
 
             // including function 'execute time' analyze
             if ((flags & Flags.Time) != 0)
@@ -159,22 +159,45 @@ namespace co.lujun.funcanalyzer.handler
             // Define data method
             MethodReference[] getMemoryMethodReferences = new MethodReference[]
             {
-                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalUnusedReservedMemoryLong")),
-                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalAllocatedMemoryLong")),
-                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalReservedMemoryLong")),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalUnusedReservedMemoryLong",
+                    new Type[] { })),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalAllocatedMemoryLong",
+                    new Type[] { })),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetTotalReservedMemoryLong",
+                    new Type[] { })),
                 ModuleDefinition.ImportReference(typeof(GC).GetMethod("Collect", new Type[] { })),
-                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoUsedSizeLong")),
-                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoHeapSizeLong"))
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoUsedSizeLong", new Type[] { })),
+                ModuleDefinition.ImportReference(typeof(Profiler).GetMethod("GetMonoHeapSizeLong", new Type[] { }))
             };
+
+            MethodDefinition formatSizeMethod = null;
+            for (int j = 0; j < TypeDefinition.Methods.Count; j++)
+            {
+                MethodDefinition methodDefinition = TypeDefinition.Methods[j];
+                if (methodDefinition.Name.Equals(Analyzer.InjectInjectFlagMethod))
+                {
+                    formatSizeMethod = methodDefinition;
+                    break;
+                }
+            }
 
             for (int i = 0; i < getMemoryMethodReferences.Length; i++)
             {
-                Instruction methodInstruction = ILProcessor.Create(OpCodes.Call, getMemoryMethodReferences[i]);
+
+                Instruction methodInstruction = null;
+                if (i != 3)
+                {
+                    methodInstruction = ILProcessor.Create(OpCodes.Ldarg, 0);
+                    ILProcessor.InsertBefore(MethodFirstInstruction, methodInstruction);
+                }
+
                 if (checkInstruction == null)
                 {
                     checkInstruction = methodInstruction;
                 }
-                ILProcessor.InsertBefore(MethodFirstInstruction, methodInstruction);
+
+                ILProcessor.InsertBefore(MethodFirstInstruction,
+                    ILProcessor.Create(OpCodes.Call, getMemoryMethodReferences[i]));
 
                 // for GC.Collect method, there is no value be generated
                 if (i == 3)
@@ -185,10 +208,14 @@ namespace co.lujun.funcanalyzer.handler
                 int localIdxOffset = i < 3 ? i : i - 1;
 
                 // Format memory size
-                MethodReference formatMethodRef = ModuleDefinition.ImportReference(
-                    typeof(SizeFormatter).GetMethod("FormatSize", new Type[]{ typeof(long) }));
-                Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatMethodRef);
+                Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatSizeMethod);
                 ILProcessor.InsertBefore(MethodFirstInstruction, formatInstruction);
+
+                //TODO test pass delete unuse code
+//                MethodReference formatMethodRef = ModuleDefinition.ImportReference(
+//                    typeof(SizeFormatter).GetMethod("FormatSize", new Type[]{ typeof(long) }));
+//                Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatMethodRef);
+//                ILProcessor.InsertBefore(MethodFirstInstruction, formatInstruction);
 
                 // Store the formatted memory size
                 Instruction stLocDataStrInstruction = ILProcessor.Create(OpCodes.Stloc,

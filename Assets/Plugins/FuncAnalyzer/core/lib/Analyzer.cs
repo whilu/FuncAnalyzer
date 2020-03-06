@@ -4,6 +4,7 @@ using co.lujun.funcanalyzer.attribute;
 using co.lujun.funcanalyzer.handler;
 using co.lujun.funcanalyzer.imodule;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -26,7 +27,7 @@ namespace co.lujun.funcanalyzer
         {
         }
 
-        private const string InjectInjectFlagMethod = "co_lujun_funcanalyzer_InjectFlag";
+        public const string InjectInjectFlagMethod = "co_lujun_funcanalyzer_InjectFlag";
 
         public void Inject(string assemblyPath, Action<float, string> callback)
         {
@@ -65,6 +66,8 @@ namespace co.lujun.funcanalyzer
             callback(.3f, "Start inject...");
             ModuleDefinition moduleDefinition = assemblyDefinition.MainModule;
 
+            string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
+
             for (int i = 0; i < moduleDefinition.Types.Count; i++)
             {
                 TypeDefinition typeDefinition = moduleDefinition.Types[i];
@@ -80,8 +83,24 @@ namespace co.lujun.funcanalyzer
                     }
                 }
 
-                // This type has already injected analysis code, continue
-                if (injectFlagMethodExist)
+                bool analyzeAttrExist = false;
+                for (int j = 0; j < methods.Count; j++)
+                {
+                    MethodDefinition methodDefinition = methods[j];
+                    for (int l = 0; l < methodDefinition.CustomAttributes.Count; l++)
+                    {
+                        CustomAttribute attribute = methodDefinition.CustomAttributes[l];
+
+                        if (attribute.Constructor.DeclaringType.FullName.Equals(analyzeAttrName))
+                        {
+                            analyzeAttrExist = true;
+                            break;
+                        }
+                    }
+                }
+
+                // This type has already injected analysis code or don't exist analyze attribute, continue
+                if (injectFlagMethodExist || !analyzeAttrExist)
                 {
                     continue;
                 }
@@ -92,7 +111,7 @@ namespace co.lujun.funcanalyzer
                 // Inject analysis code for specify methods
                 for (int j = 0; j < methods.Count; j++)
                 {
-                    AnalyzeFunc(moduleDefinition, methods[j]);
+                    AnalyzeFunc(moduleDefinition, typeDefinition, methods[j]);
                 }
             }
 
@@ -106,13 +125,99 @@ namespace co.lujun.funcanalyzer
 
         private void InjectFlagMethod(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition)
         {
-            // New method
-            MethodDefinition injectFlgMethodDefinition = new MethodDefinition(InjectInjectFlagMethod,
-                MethodAttributes.Private | MethodAttributes.HideBySig, moduleDefinition.TypeSystem.Void);
-            typeDefinition.Methods.Add(injectFlgMethodDefinition);
+            // New method, with format function
+            MethodDefinition injectFlagMethodDefinition = new MethodDefinition(InjectInjectFlagMethod,
+                MethodAttributes.Private | MethodAttributes.HideBySig, moduleDefinition.TypeSystem.String);
+            typeDefinition.Methods.Add(injectFlagMethodDefinition);
+
+            injectFlagMethodDefinition.Parameters.Add(new ParameterDefinition(moduleDefinition.TypeSystem.Int64));
+
+            injectFlagMethodDefinition.Body.Variables.Add(
+                new VariableDefinition(moduleDefinition.ImportReference(typeof(string[]))));
+            injectFlagMethodDefinition.Body.Variables.Add(new VariableDefinition(moduleDefinition.TypeSystem.Int32));
+            injectFlagMethodDefinition.Body.Variables.Add(
+                new VariableDefinition(moduleDefinition.ImportReference(typeof(decimal))));
+            injectFlagMethodDefinition.Body.Variables.Add(new VariableDefinition(moduleDefinition.TypeSystem.Boolean));
+            injectFlagMethodDefinition.Body.Variables.Add(new VariableDefinition(moduleDefinition.TypeSystem.String));
+
+            ILProcessor ilProcessor = injectFlagMethodDefinition.Body.GetILProcessor();
+            ilProcessor.Emit(OpCodes.Ldc_I4, 6);
+            ilProcessor.Emit(OpCodes.Newarr, moduleDefinition.TypeSystem.String);
+
+            string[] suffixes = { "Bytes", "KB", "MB", "GB", "TB", "PB" };
+
+            for (int i = 0; i < suffixes.Length; i++)
+            {
+                ilProcessor.Emit(OpCodes.Dup);
+                ilProcessor.Emit(OpCodes.Ldc_I4, i);
+                ilProcessor.Emit(OpCodes.Ldstr, suffixes[i]);
+                ilProcessor.Emit(OpCodes.Stelem_Ref);
+            }
+
+            ilProcessor.Emit(OpCodes.Stloc, 0);
+            ilProcessor.Emit(OpCodes.Ldc_I4, 0);
+            ilProcessor.Emit(OpCodes.Stloc, 1);
+            ilProcessor.Emit(OpCodes.Ldarg, 1);
+
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(decimal).GetMethod("op_Implicit", new Type[] {typeof(long)})));
+            ilProcessor.Emit(OpCodes.Stloc, 2);
+
+            Instruction nop_b1 = ilProcessor.Create(OpCodes.Nop);
+            Instruction ldloc_2_b2 = ilProcessor.Create(OpCodes.Ldloc, 2);
+
+            ilProcessor.Emit(OpCodes.Br, ldloc_2_b2);
+
+            // Start loop
+            ilProcessor.Append(nop_b1);
+            ilProcessor.Emit(OpCodes.Ldloc, 2);
+            ilProcessor.Emit(OpCodes.Ldc_I4, 1024);
+            ilProcessor.Emit(OpCodes.Newobj,
+                moduleDefinition.ImportReference(typeof(decimal).GetConstructor(new Type[] {typeof(int)})));
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(decimal).GetMethod("op_Division",
+                    new Type[] {typeof(decimal), typeof(decimal)})));
+            ilProcessor.Emit(OpCodes.Stloc, 2);
+            ilProcessor.Emit(OpCodes.Ldloc, 1);
+            ilProcessor.Emit(OpCodes.Ldc_I4, 1);
+            ilProcessor.Emit(OpCodes.Add);
+            ilProcessor.Emit(OpCodes.Stloc, 1);
+            ilProcessor.Emit(OpCodes.Nop);
+
+            ilProcessor.Append(ldloc_2_b2);
+            ilProcessor.Emit(OpCodes.Ldc_I4, 1024);
+            ilProcessor.Emit(OpCodes.Newobj,
+                moduleDefinition.ImportReference(typeof(decimal).GetConstructor(new Type[] {typeof(int)})));
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(decimal).GetMethod("op_Division",
+                    new Type[] {typeof(decimal), typeof(decimal)})));
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(Math).GetMethod("Round", new Type[] {typeof(decimal)})));
+            ilProcessor.Emit(OpCodes.Ldsfld,
+                moduleDefinition.ImportReference(typeof(decimal).GetField("One")));
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(decimal).GetMethod("op_GreaterThanOrEqual",
+                    new Type[] {typeof(decimal), typeof(decimal)})));
+            ilProcessor.Emit(OpCodes.Stloc, 3);
+            ilProcessor.Emit(OpCodes.Ldloc, 3);
+            ilProcessor.Emit(OpCodes.Brtrue, nop_b1);
+
+            ilProcessor.Emit(OpCodes.Ldstr, "{0:n1}{1}");
+            ilProcessor.Emit(OpCodes.Ldloc, 2);
+            ilProcessor.Emit(OpCodes.Box, moduleDefinition.ImportReference(typeof(decimal)));
+            ilProcessor.Emit(OpCodes.Ldloc, 0);
+            ilProcessor.Emit(OpCodes.Ldloc, 1);
+            ilProcessor.Emit(OpCodes.Ldelem_Ref);
+            ilProcessor.Emit(OpCodes.Call,
+                moduleDefinition.ImportReference(typeof(string).GetMethod("Format",
+                    new Type[] {typeof(string), typeof(object), typeof(object)})));
+            ilProcessor.Emit(OpCodes.Stloc, 4);
+            ilProcessor.Emit(OpCodes.Ldloc, 4);
+            ilProcessor.Emit(OpCodes.Ret);
         }
 
-        private void AnalyzeFunc(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition)
+        private void AnalyzeFunc(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
+            MethodDefinition methodDefinition)
         {
             string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
             bool needAnalyze = false;
@@ -134,11 +239,12 @@ namespace co.lujun.funcanalyzer
 
             if (needAnalyze)
             {
-                InjectILCode(moduleDefinition, methodDefinition, enable, flags);
+                InjectILCode(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
             }
         }
 
-        private void InjectILCode(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
+        private void InjectILCode(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
+            MethodDefinition methodDefinition, bool enable,
             Flags flags)
         {
             IHandler funcDataHandler = null;
@@ -164,8 +270,8 @@ namespace co.lujun.funcanalyzer
             }
 
             // inject handler
-            funcDataHandler?.Inject(moduleDefinition, methodDefinition, enable, flags);
-            runTimeDataHandler?.Inject(moduleDefinition, methodDefinition, enable, flags);
+            funcDataHandler?.Inject(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
+            runTimeDataHandler?.Inject(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
         }
 
         private void AnalyzeAttr<T>(CustomAttribute attribute, string argName, ref T t)

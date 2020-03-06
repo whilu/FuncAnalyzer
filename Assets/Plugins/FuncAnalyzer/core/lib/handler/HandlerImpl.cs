@@ -8,6 +8,8 @@ namespace co.lujun.funcanalyzer.handler
     {
         public ModuleDefinition ModuleDefinition { get; set; }
 
+        public TypeDefinition TypeDefinition { get; set; }
+
         public MethodDefinition MethodDefinition { get; set; }
 
         public ILProcessor ILProcessor { get; set; }
@@ -27,10 +29,11 @@ namespace co.lujun.funcanalyzer.handler
 
         public bool Enable { get; set; }
 
-        public virtual void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable,
-            Flags flags)
+        public virtual void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
+            MethodDefinition methodDefinition, bool enable, Flags flags)
         {
             ModuleDefinition = moduleDefinition;
+            TypeDefinition = typeDefinition;
             MethodDefinition = methodDefinition;
             ILProcessor = methodDefinition.Body.GetILProcessor();
             MethodFirstInstruction = methodDefinition.Body.Instructions[0];

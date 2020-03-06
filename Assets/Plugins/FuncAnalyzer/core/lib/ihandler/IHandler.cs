@@ -6,6 +6,7 @@ namespace co.lujun.funcanalyzer.imodule
     public interface IHandler
     {
         ModuleDefinition ModuleDefinition { get; set; }
+        TypeDefinition TypeDefinition { get; set; }
         MethodDefinition MethodDefinition { get; set; }
         ILProcessor ILProcessor { get; set; }
         Instruction MethodFirstInstruction { get; set; }
@@ -14,7 +15,8 @@ namespace co.lujun.funcanalyzer.imodule
         int LocalMethodVariablesCount { get; set; }
         Flags Flags { get; set; }
         bool Enable { get; set; }
-        void Inject(ModuleDefinition moduleDefinition, MethodDefinition methodDefinition, bool enable, Flags flags);
+        void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition, MethodDefinition methodDefinition,
+            bool enable, Flags flags);
         void InjectCheckEnableCode(Instruction insertInstruction, Instruction brInstruction);
     }
 }

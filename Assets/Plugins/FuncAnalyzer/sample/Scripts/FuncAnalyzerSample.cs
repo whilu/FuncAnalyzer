@@ -1,5 +1,9 @@
-﻿using co.lujun.funcanalyzer.attribute;
+﻿using System;
+using co.lujun.funcanalyzer.attribute;
+using co.lujun.funcanalyzer.util;
+using Mono.Cecil;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace co.lujun.funcanalyzer.sample
 {
@@ -55,7 +59,7 @@ namespace co.lujun.funcanalyzer.sample
 //            AnalyzeRetSampleFunction();
 //            AnalyzeTimeSampleFunction();
             AnalyzeMemorySampleFunction();
-            Debug.Log("===aaasa");
+            Debug.Log("===hello world");
 //            AnalyzeArgsAndTimeSampleFunction("你好", 3.222d);
 //            NoAnalyzeSampleFunction();
         }
