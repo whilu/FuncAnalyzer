@@ -226,12 +226,6 @@ namespace co.lujun.funcanalyzer.handler
                 Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatSizeMethod);
                 ILProcessor.InsertBefore(MethodFirstInstruction, formatInstruction);
 
-                //TODO test pass delete unuse code
-//                MethodReference formatMethodRef = ModuleDefinition.ImportReference(
-//                    typeof(SizeFormatter).GetMethod("FormatSize", new Type[]{ typeof(long) }));
-//                Instruction formatInstruction = ILProcessor.Create(OpCodes.Call, formatMethodRef);
-//                ILProcessor.InsertBefore(MethodFirstInstruction, formatInstruction);
-
                 // Store the formatted memory size
                 Instruction stLocDataStrInstruction = ILProcessor.Create(OpCodes.Stloc,
                     OriginVariablesCount - logParamsCount + localIdxOffset);
