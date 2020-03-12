@@ -6,7 +6,7 @@ A method analyzer for Unity 3D. **Easy** to use and **Not invade** the source co
 
 ### Step 1
 
-Import FuncAnalyzer package.
+Import FuncAnalyzer package, purchase from [Asset Store](https://assetstore.unity.com/packages/slug/164221).
 
 ### Step 2
 
