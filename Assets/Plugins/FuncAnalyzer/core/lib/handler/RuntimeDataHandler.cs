@@ -26,18 +26,18 @@ namespace co.lujun.funcanalyzer.handler
     public class RuntimeDataHandler : HandlerImpl
     {
         public override void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
-            MethodDefinition methodDefinition, bool enable, Flags flags)
+            MethodDefinition methodDefinition, bool enable, int flags)
         {
             base.Inject(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
 
             // including function 'execute time' analyze
-            if ((flags & Flags.Time) != 0)
+            if ((flags & funcanalyzer.Flags.Time) != 0)
             {
                 GenerateAnalysisCodeForTime();
             }
 
             // including function 'memory data' analyze
-            if ((flags & Flags.Memory) != 0)
+            if ((flags & funcanalyzer.Flags.Memory) != 0)
             {
                 GenerateAnalysisCodeForMemory();
             }

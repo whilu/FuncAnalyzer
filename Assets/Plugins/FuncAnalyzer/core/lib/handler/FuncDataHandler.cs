@@ -26,18 +26,18 @@ namespace co.lujun.funcanalyzer.handler
     public class FuncDataHandler : HandlerImpl
     {
         public override void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
-            MethodDefinition methodDefinition, bool enable, Flags flags)
+            MethodDefinition methodDefinition, bool enable, int flags)
         {
             base.Inject(moduleDefinition, typeDefinition, methodDefinition, enable, flags);
 
             // including function 'args' analyze
-            if((flags & Flags.Args) != 0)
+            if((flags & funcanalyzer.Flags.Args) != 0)
             {
                 GenerateAnalysisCodeForArgs();
             }
 
             // including function 'return value' analyze
-            if ((flags & Flags.Ret) != 0)
+            if ((flags & funcanalyzer.Flags.Ret) != 0)
             {
                 GenerateAnalysisCodeForRet();
             }

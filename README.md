@@ -47,7 +47,7 @@ If disabled, this method will not print logs.
 
 ## <span id="Flags">Analyze Flags</span>
 
-The `co.lujun.funcanalyzer.Flags` enum provides some analysis indicators:
+The `co.lujun.funcanalyzer.Flags` class provides some analysis indicators:
 
 | Name  | Description  |
 | ------------ | ------------ |
@@ -83,6 +83,9 @@ Use the menu tool, you can do something like below:
 | Auto Inject  | Enable or disable automatic injecting. Once enabled, FuncAnalyzer will automatically inject analysis code after reload scripts(Default enable).  |
 
 ## Change logs
+
+### 1.0.1(2020-03-27)
+- Fix bugs
 
 ### 1.0.0(2020-03-06)
 - First release

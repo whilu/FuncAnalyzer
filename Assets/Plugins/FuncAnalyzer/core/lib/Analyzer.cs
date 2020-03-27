@@ -238,7 +238,7 @@ namespace co.lujun.funcanalyzer
             string analyzeAttrName = typeof(AnalyzeAttribute).FullName;
             bool needAnalyze = false;
             bool enable = true;
-            Flags flags = Flags.Default;
+            int flags = Flags.Default;
 
             for (int i = 0; i < methodDefinition.CustomAttributes.Count; i++)
             {
@@ -247,7 +247,7 @@ namespace co.lujun.funcanalyzer
                 if (attribute.Constructor.DeclaringType.FullName.Equals(analyzeAttrName))
                 {
                     needAnalyze = true;
-                    AnalyzeAttr<Flags>(attribute, "AnalyzingFlags", ref flags);
+                    AnalyzeAttr<int>(attribute, "AnalyzingFlags", ref flags);
                     AnalyzeAttr<bool>(attribute, "Enable", ref enable);
                     break;
                 }
@@ -260,8 +260,7 @@ namespace co.lujun.funcanalyzer
         }
 
         private void InjectILCode(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
-            MethodDefinition methodDefinition, bool enable,
-            Flags flags)
+            MethodDefinition methodDefinition, bool enable, int flags)
         {
             IHandler funcDataHandler = null;
             IHandler runTimeDataHandler = null;

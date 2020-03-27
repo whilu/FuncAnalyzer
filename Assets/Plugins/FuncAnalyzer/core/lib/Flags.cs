@@ -16,12 +16,12 @@
 
 namespace co.lujun.funcanalyzer
 {
-    public enum Flags
+    public class Flags
     {
-        Default = 1,
-        Args = 2,
-        Ret = 4,
-        Time = 8,
-        Memory = 16
+        public const int Default = 1;
+        public const int Args = 2;
+        public const int Ret = 4;
+        public const int Time = 8;
+        public const int Memory = 16;
     }
 }

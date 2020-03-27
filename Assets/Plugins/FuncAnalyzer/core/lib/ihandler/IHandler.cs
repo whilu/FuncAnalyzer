@@ -29,10 +29,10 @@ namespace co.lujun.funcanalyzer.imodule
         Instruction MethodLastInstruction { get; set; }
         int OriginVariablesCount { get; }
         int LocalMethodVariablesCount { get; set; }
-        Flags Flags { get; set; }
+        int Flags { get; set; }
         bool Enable { get; set; }
         void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition, MethodDefinition methodDefinition,
-            bool enable, Flags flags);
+            bool enable, int flags);
         void InjectCheckEnableCode(Instruction insertInstruction, Instruction brInstruction);
     }
 }

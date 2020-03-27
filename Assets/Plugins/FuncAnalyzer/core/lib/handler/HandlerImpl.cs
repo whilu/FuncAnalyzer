@@ -41,12 +41,12 @@ namespace co.lujun.funcanalyzer.handler
 
         public int LocalMethodVariablesCount { get; set; }
 
-        public Flags Flags { get; set; }
+        public int Flags { get; set; }
 
         public bool Enable { get; set; }
 
         public virtual void Inject(ModuleDefinition moduleDefinition, TypeDefinition typeDefinition,
-            MethodDefinition methodDefinition, bool enable, Flags flags)
+            MethodDefinition methodDefinition, bool enable, int flags)
         {
             ModuleDefinition = moduleDefinition;
             TypeDefinition = typeDefinition;
