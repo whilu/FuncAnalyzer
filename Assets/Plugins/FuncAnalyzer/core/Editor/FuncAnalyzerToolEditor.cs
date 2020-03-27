@@ -41,9 +41,11 @@ namespace co.lujun.funcanalyzer.editor
         [MenuItem(InjectAnalysisCodeMenuLabel, false, 1)]
         public static void Inject()
         {
+#if UNITY_EDITOR
             Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp.dll", InjectCallback);
             Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-firstpass.dll", InjectCallback);
             Analyzer.Instance.Inject("./Library/ScriptAssemblies/Assembly-CSharp-Editor.dll", InjectCallback);
+#endif
         }
 
         [MenuItem(AutoInjectMenuLabel, false, 3)]
